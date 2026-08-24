@@ -4,30 +4,39 @@
     <script>document.documentElement.classList.remove('no-js');</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="color-scheme" content="light">
-    <meta name="theme-color" content="#f7f7f5">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#050510">
     <title>@yield('title', 'ورود') — {{ \App\Models\Setting::get('site_name', 'سامانه کمپین') }}</title>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.0.0/index.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource-variable/space-grotesk@5.3.0/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/cosmos.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 </head>
 <body>
 
+{{-- جوّ کهکشانی — لایه‌های پشت همه‌چیز --}}
+<div class="nebula" aria-hidden="true"></div>
+<canvas id="starfield" class="starfield" aria-hidden="true"></canvas>
+<div class="noise" aria-hidden="true"></div>
+
 <div class="auth">
 
     {{-- ————————————————————————————— سمت روایت --}}
     <aside class="auth__aside">
-        <a href="{{ url('/') }}" class="row" style="align-self:flex-start">
-            <span class="mark" dir="ltr" style="background:#fff;color:var(--ink)">IC</span>
-            <span class="h4" style="color:#fff">{{ \App\Models\Setting::get('site_name', 'سامانه کمپین') }}</span>
+        <div class="orb orb--indigo orb--md" style="top:-14%;inset-inline-end:-10%" aria-hidden="true"></div>
+        <div class="orb orb--violet orb--sm orb--slow" style="bottom:6%;inset-inline-start:8%" aria-hidden="true"></div>
+
+        <a href="{{ url('/') }}" class="row" style="align-self:flex-start;position:relative">
+            <span class="mark" dir="ltr">IC</span>
+            <span class="h4" style="color:#f1f5f9">{{ \App\Models\Setting::get('site_name', 'سامانه کمپین') }}</span>
         </a>
 
         <div class="auth__quote" style="max-width:34ch">
             <span class="eyebrow">Instagram Story Campaigns</span>
-            <p class="display" style="color:#fff;font-size:clamp(34px, 4.4vw, 52px);margin-block-start:16px" dir="ltr">
+            <p class="display" style="color:#f1f5f9;font-size:clamp(34px, 4.4vw, 52px);margin-block-start:16px" dir="ltr">
                 Reach, <em class="display--italic">measured</em>.
             </p>
             <p class="body" style="color:rgba(255,255,255,.62);margin-block-start:20px">
@@ -60,6 +69,7 @@
 
 @include('partials.flash')
 
+<script src="{{ asset('js/cosmos.js') }}" defer></script>
 <script src="{{ asset('js/app.js') }}" defer></script>
 </body>
 </html>

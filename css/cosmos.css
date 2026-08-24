@@ -1,0 +1,596 @@
+/* ==========================================================================
+   cosmos — the quiet galaxy design system
+   --------------------------------------------------------------------------
+   Pure CSS layer. Zero dependencies, zero build step.
+   Source of truth lives here — after edits, mirror it (repo convention):
+
+       cp resources/css/cosmos.css css/cosmos.css
+
+   Every token maps 1:1 to the Tailwind config (space / celestial palettes)
+   for the day a build pipeline arrives. RTL-aware: logical properties
+   everywhere, [dir="rtl"] refinements where direction matters.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1 · tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* space surfaces — layered for depth (deepest → raised) */
+  --space-900: #050510;
+  --space-800: #0a0a1a;
+  --space-700: #0f0f2e;
+  --space-600: #1a1a3e;
+
+  /* celestial accents — soft, never neon */
+  --cel-indigo: #6366f1;
+  --cel-blue: #818cf8;
+  --cel-purple: #a78bfa;
+  --cel-purple-soft: #c4b5fd;
+  --cel-teal: #5eead4;
+  --cel-pink: #f0abfc; /* use very sparingly */
+
+  /* ink — never pure white */
+  --ink-100: #e2e8f0;
+  --ink-200: #cbd5e1;
+  --ink-300: #94a3b8;
+  --ink-400: #64748b;
+
+  /* alpha helpers */
+  --line: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.10);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-raise: rgba(255, 255, 255, 0.05);
+
+  /* glow — always low opacity, always large blur */
+  --glow-indigo: rgba(99, 102, 241, 0.28);
+  --glow-violet: rgba(167, 139, 250, 0.22);
+  --glow-teal: rgba(94, 234, 212, 0.16);
+
+  /* radii — soft corners only */
+  --r-md: 12px;   /* inputs, buttons (xl minimum) */
+  --r-lg: 16px;   /* cards (2xl) */
+  --r-xl: 20px;   /* large panels */
+  --r-full: 999px;
+
+  /* shadows — depth through layering, never harsh borders */
+  --shadow-1: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.08);
+
+  /* motion — slow, smooth, purposeful */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-instant: 150ms;
+  --t-fast: 250ms;     /* hovers */
+  --t-med: 450ms;      /* modals, page-level */
+  --t-reveal: 700ms;   /* scroll entrances */
+  --t-ambient: 15s;    /* orbs, nebula drift */
+
+  /* type — Space Grotesk + Inter for Latin; Vazirmatn carries Persian
+     (Inter has no Arabic glyphs, so the fallback is per-character: 2
+     font families render on any page, never 3) */
+  --font-body: "Inter", "Vazirmatn", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Vazirmatn", "Inter", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2 · base
+   -------------------------------------------------------------------------- */
+html { color-scheme: dark; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--space-900);
+  color: var(--ink-200);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink-100);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* negative tracking damages Arabic-script joining — neutralise for fa
+   (matches the <html> and any embedded [lang="fa"] region) */
+html[lang="fa"] h1,
+html[lang="fa"] h2,
+html[lang="fa"] h3,
+html[lang="fa"] h4,
+[lang="fa"] h1,
+[lang="fa"] h2,
+[lang="fa"] h3,
+[lang="fa"] h4 { letter-spacing: 0; }
+
+p { margin: 0; }
+::selection { background: rgba(99, 102, 241, 0.35); color: #eef2ff; }
+
+/* thin, quiet scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--space-900); }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: var(--r-full);
+  border: 2px solid var(--space-900);
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.25); }
+
+/* focus — soft celestial glow, never the default outline */
+:focus { outline: none; }
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.28), 0 0 24px rgba(99, 102, 241, 0.15);
+  border-radius: var(--r-md);
+}
+
+/* skip-to-content — hidden until keyboard-focused */
+.skip-link {
+  position: fixed;
+  inset-inline-start: 1rem;
+  top: 1rem;
+  z-index: 10001;
+  transform: translateY(-250%);
+  background: var(--space-700);
+  color: var(--ink-100);
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  box-shadow: var(--shadow-2);
+  text-decoration: none;
+  transition: transform var(--t-fast) var(--ease-soft);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* --------------------------------------------------------------------------
+   3 · atmosphere — the sky, in layers
+   -------------------------------------------------------------------------- */
+
+/* layer 1+2 · deepest void + nebula gradients */
+.nebula {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(99, 102, 241, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 85% 12%, rgba(167, 139, 250, 0.08), transparent 65%),
+    radial-gradient(ellipse 70% 55% at 50% 115%, rgba(94, 234, 212, 0.045), transparent 60%),
+    var(--space-900);
+}
+/* second gradient sheet, breathing at 20s — barely noticeable */
+.nebula::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 40% at 70% 80%, rgba(167, 139, 250, 0.06), transparent 65%),
+    radial-gradient(ellipse 45% 35% at 15% 60%, rgba(99, 102, 241, 0.06), transparent 60%);
+  animation: nebulaBreath 20s ease-in-out infinite;
+}
+
+/* layer 3 · star field — canvas driven by cosmos.js, static without JS */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* layer 4 · glow orbs — large blur, 5–10% opacity, zero-gravity float */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: float var(--t-ambient) ease-in-out infinite;
+  will-change: transform;
+}
+.orb--indigo { background: radial-gradient(circle, var(--cel-indigo), transparent 70%); opacity: 0.08; }
+.orb--violet { background: radial-gradient(circle, var(--cel-purple), transparent 70%); opacity: 0.07; }
+.orb--teal   { background: radial-gradient(circle, var(--cel-teal),   transparent 70%); opacity: 0.05; }
+.orb--lg { width: 540px; height: 540px; }
+.orb--md { width: 380px; height: 380px; }
+.orb--sm { width: 240px; height: 240px; }
+.orb--slow { animation-duration: 20s; animation-delay: -7s; }
+
+/* noise overlay — 3% opacity, kills banding, adds organic depth */
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(0, -26px, 0) scale(1.04); }
+}
+@keyframes nebulaBreath {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   4 · typography utilities
+   -------------------------------------------------------------------------- */
+.display-hero {
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+  font-weight: 300;              /* hero is light, not loud */
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.display-hero { letter-spacing: -0.03em; }
+html[lang="fa"] .display-hero,
+[lang="fa"] .display-hero { letter-spacing: 0; font-weight: 400; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-300);
+  letter-spacing: 0.08em;
+}
+
+/* gradient text — hero headings only */
+.text-gradient {
+  background: linear-gradient(135deg, #e2e8f0, #818cf8 55%, #c4b5fd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* text glow — main hero title only */
+.text-glow { text-shadow: 0 0 40px rgba(99, 102, 241, 0.3), 0 0 80px rgba(99, 102, 241, 0.1); }
+
+.text-secondary { color: var(--ink-300); }
+.text-muted { color: var(--ink-400); }
+.measure { max-width: 68ch; }          /* 65–75 characters per line */
+
+/* --------------------------------------------------------------------------
+   5 · layout rhythm — content must breathe
+   -------------------------------------------------------------------------- */
+.u-container {
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: clamp(1.5rem, 4vw, 3rem); /* px-6 → px-12 */
+}
+.section { padding-block: clamp(6rem, 10vw, 9rem); } /* py-24 → py-36 */
+
+.grid-bento {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(6, 1fr);
+}
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+@media (max-width: 900px) {
+  .span-2, .span-3, .span-4, .span-6 { grid-column: 1 / -1; }
+}
+
+/* --------------------------------------------------------------------------
+   6 · cards — glassmorphism, done quietly
+   -------------------------------------------------------------------------- */
+.card {
+  position: relative;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: 1.75rem;
+  transition:
+    transform var(--t-fast) var(--ease-soft),
+    box-shadow var(--t-fast) var(--ease-soft),
+    border-color var(--t-fast) var(--ease-soft),
+    background-color var(--t-fast) var(--ease-soft);
+}
+.card--hover:hover,
+.card--hover:focus-within {
+  transform: translateY(-4px);
+  border-color: rgba(129, 140, 248, 0.18);
+  box-shadow: var(--shadow-lift);
+  background: var(--glass-raise);
+}
+
+/* media zoom — gentle, 500ms */
+.media-zoom { overflow: hidden; border-radius: var(--r-lg); }
+.media-zoom img {
+  display: block;
+  width: 100%;
+  transition: transform 500ms var(--ease-soft);
+}
+.media-zoom:hover img { transform: scale(1.05); }
+
+/* --------------------------------------------------------------------------
+   7 · buttons — soft, rounded, never shouting
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;             /* px-6 py-3 */
+  border-radius: var(--r-md);          /* rounded-xl minimum */
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--t-fast) var(--ease-soft),
+    box-shadow var(--t-fast) var(--ease-soft),
+    border-color var(--t-fast) var(--ease-soft),
+    background-color var(--t-fast) var(--ease-soft),
+    color var(--t-fast) var(--ease-soft);
+}
+.btn:active { transform: scale(0.98); }
+.btn svg { width: 16px; height: 16px; }
+
+/* primary — soft celestial gradient + glow on hover */
+.btn--primary {
+  background: linear-gradient(135deg, var(--cel-indigo), var(--cel-purple));
+  color: #eef2ff;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.25);
+}
+.btn--primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(129, 140, 248, 0.2);
+}
+
+/* secondary — glass with a glow border on hover */
+.btn--secondary {
+  background: var(--glass-raise);
+  border-color: var(--line-strong);
+  color: var(--ink-200);
+  box-shadow: var(--shadow-1);
+}
+.btn--secondary:hover {
+  transform: translateY(-2px);
+  border-color: rgba(129, 140, 248, 0.35);
+  color: var(--ink-100);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(99, 102, 241, 0.12);
+}
+
+/* ghost — no bg, color shift + underline */
+.btn--ghost {
+  background: transparent;
+  color: var(--ink-300);
+  padding-inline: 0.75rem;
+}
+.btn--ghost:hover { color: var(--ink-100); }
+
+/* links — underline slides in, direction-aware */
+.link {
+  position: relative;
+  color: var(--ink-200);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease-soft);
+}
+.link::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cel-blue), var(--cel-purple));
+  border-radius: var(--r-full);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--t-fast) var(--ease-soft);
+}
+.link:hover { color: var(--ink-100); }
+.link:hover::after,
+.link:focus-visible::after { transform: scaleX(1); }
+[dir="rtl"] .link::after { transform-origin: right center; }
+
+/* --------------------------------------------------------------------------
+   8 · forms — dark, calm, glowing on focus
+   -------------------------------------------------------------------------- */
+.field { display: flex; flex-direction: column; gap: 0.5rem; }
+.field > label {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--ink-300);
+  letter-spacing: 0.01em;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--ink-100);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  padding: 0.75rem 1rem;
+  transition:
+    border-color var(--t-fast) var(--ease-soft),
+    box-shadow var(--t-fast) var(--ease-soft),
+    background-color var(--t-fast) var(--ease-soft);
+}
+.input::placeholder,
+.textarea::placeholder { color: rgba(148, 163, 184, 0.5); }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--line-strong); }
+
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  border-color: rgba(129, 140, 248, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 0 24px rgba(99, 102, 241, 0.12);
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-inline-end: 2.75rem;
+}
+[dir="rtl"] .select { background-position: left 1rem center; padding-inline-end: 1rem; padding-inline-start: 2.75rem; }
+.select option { background: var(--space-800); color: var(--ink-100); }
+
+/* error — a soft rose glow, never a harsh red border */
+.field--error .input,
+.field--error .select {
+  border-color: rgba(244, 63, 94, 0.45);
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.08), 0 0 20px rgba(244, 63, 94, 0.10);
+}
+.field-error-text { font-size: 12px; color: #fda4af; }
+
+/* --------------------------------------------------------------------------
+   9 · chips & status — tints, not sirens
+   -------------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  font-size: 12px;                     /* minimum size — never smaller */
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+.chip--indigo { background: rgba(99, 102, 241, 0.12);  color: #a5b4fc; border-color: rgba(99, 102, 241, 0.25); }
+.chip--violet { background: rgba(167, 139, 250, 0.12); color: #c4b5fd; border-color: rgba(167, 139, 250, 0.25); }
+.chip--teal   { background: rgba(94, 234, 212, 0.10);  color: #99f6e4; border-color: rgba(94, 234, 212, 0.22); }
+.chip--rose   { background: rgba(244, 63, 94, 0.10);   color: #fda4af; border-color: rgba(244, 63, 94, 0.22); }
+.chip--glass  { background: var(--glass); color: var(--ink-300); border-color: var(--line); }
+
+.chip .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* gentle loading pulse — no spinners */
+.pulse-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--cel-blue);
+  box-shadow: 0 0 12px var(--glow-indigo);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   10 · navigation — sticky glass, sliding underline
+   -------------------------------------------------------------------------- */
+.nav-glass {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(5, 5, 16, 0.55);
+  border-bottom: 1px solid var(--line);
+}
+
+/* --------------------------------------------------------------------------
+   11 · modal — glass panel, scale-in
+   -------------------------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(5, 5, 16, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+dialog.cosmos-modal {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: rgba(26, 26, 62, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--ink-200);
+  padding: 2rem;
+  box-shadow: var(--shadow-2), 0 0 60px rgba(99, 102, 241, 0.08);
+}
+dialog.cosmos-modal[open] { animation: modalIn var(--t-med) var(--ease-soft); }
+dialog.cosmos-modal::backdrop {
+  background: rgba(5, 5, 16, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   12 · scroll reveals — fade up, staggered, graceful without JS
+   -------------------------------------------------------------------------- */
+html.cosmos-js .reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.reveal {
+  transition:
+    opacity var(--t-reveal) var(--ease-soft),
+    transform var(--t-reveal) var(--ease-soft);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* pure-CSS entrance when JS timing isn't needed */
+.fade-up { animation: fadeUp 600ms var(--ease-soft) both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   13 · accessibility floors
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  html.cosmos-js .reveal:not(.is-visible) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid Highlight; box-shadow: none; }
+  .card, .btn--secondary { border: 1px solid CanvasText; }
+}

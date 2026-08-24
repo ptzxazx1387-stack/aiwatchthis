@@ -4,17 +4,23 @@
     <script>document.documentElement.classList.remove('no-js');</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="color-scheme" content="light">
-    <meta name="theme-color" content="#f7f7f5">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#050510">
     <title>@yield('title', 'داشبورد') — {{ \App\Models\Setting::get('site_name', 'سامانه کمپین') }}</title>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.0.0/index.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource-variable/space-grotesk@5.3.0/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/cosmos.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 </head>
 <body>
+
+{{-- جوّ کهکشانی — لایه‌های پشت همه‌چیز --}}
+<div class="nebula" aria-hidden="true"></div>
+<canvas id="starfield" class="starfield" aria-hidden="true"></canvas>
+<div class="noise" aria-hidden="true"></div>
 
 @php
     $user = auth()->user();
@@ -132,6 +138,7 @@
 @include('partials.dialogs')
 
 <script type="application/json" id="palette-data">@json(\App\Support\Navigation::paletteItems($user), JSON_UNESCAPED_UNICODE)</script>
+<script src="{{ asset('js/cosmos.js') }}" defer></script>
 <script src="{{ asset('js/app.js') }}" defer></script>
 </body>
 </html>
