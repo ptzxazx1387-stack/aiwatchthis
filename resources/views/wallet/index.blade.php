@@ -1,83 +1,91 @@
 @extends('layouts.app')
 
 @section('title', 'کیف پول')
-@section('page-title', 'کیف پول')
 
 @section('content')
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-gradient-to-l from-indigo-600 to-violet-600 rounded-2xl p-6 text-white">
-                <div class="text-sm text-indigo-100 mb-1">موجودی قابل برداشت</div>
-                <div class="text-3xl font-bold">{{ number_format($wallet?->balance ?? 0) }} <span class="text-base font-normal">تومان</span></div>
-                <div class="mt-3 text-xs text-indigo-200">موجودی مسدود: {{ number_format($wallet?->blocked_balance ?? 0) }} تومان</div>
-            </div>
+    <x-page-header eyebrow="Wallet" title="کیف پول" lead="موجودی، تراکنش‌ها و درخواست‌های برداشت در یک نمای ساده و قابل‌پیگیری." />
 
-            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-bold text-gray-800">تراکنش‌ها</h3>
+    <div class="grid grid-side grid-24">
+        <div class="stack-24">
+            <section class="ledger" data-reveal>
+                <div class="row between wrap" style="gap:18px">
+                    <div>
+                        <span class="eyebrow">Available balance</span>
+                        <div class="ledger__value">
+                            <span class="figure">{{ \App\Support\Fmt::num($wallet?->balance ?? 0) }}</span>
+                            <span class="ledger__unit">تومان</span>
+                        </div>
+                        <p class="ledger__side">
+                            موجودی مسدود:
+                            <span class="figure">{{ \App\Support\Fmt::num($wallet?->blocked_balance ?? 0) }}</span>
+                            تومان
+                        </p>
+                    </div>
+                    <x-icon name="wallet" :size="34" class="dim" style="color:rgba(255,255,255,.55)" />
                 </div>
-                <div class="divide-y divide-gray-100">
+            </section>
+
+            <section class="card card--flush" data-reveal>
+                <x-section-head title="تراکنش‌ها" />
+                <div class="list">
                     @forelse($transactions as $tx)
-                        <div class="px-5 py-3 flex items-center justify-between text-sm">
-                            <div>
-                                <div class="font-medium text-gray-800">{{ $tx->description }}</div>
-                                <div class="text-xs text-gray-400">{{ $tx->created_at->format('Y/m/d H:i') }}</div>
+                        <div class="list__row">
+                            <span class="avatar avatar--sm avatar--mist">
+                                <x-icon :name="$tx->type->value === 'credit' ? 'banknote' : 'wallet'" :size="14" />
+                            </span>
+                            <div class="grow stack-4">
+                                <span class="strong truncate">{{ $tx->description }}</span>
+                                <span class="micro figure">{{ \App\Support\Fmt::dateTime($tx->created_at) }}</span>
                             </div>
-                            <span class="font-bold {{ $tx->type->value === 'credit' ? 'text-emerald-600' : 'text-rose-600' }}">
-                                {{ $tx->type->value === 'credit' ? '+' : '-' }}{{ number_format($tx->amount) }}
+                            <span class="h4 figure {{ $tx->type->value === 'credit' ? 'tone-emerald' : 'tone-rose' }}">
+                                {{ $tx->type->value === 'credit' ? '+' : '−' }}{{ \App\Support\Fmt::money($tx->amount) }}
                             </span>
                         </div>
                     @empty
-                        <div class="px-5 py-8 text-center text-gray-400 text-sm">تراکنشی ثبت نشده است</div>
+                        <x-empty-state icon="wallet" title="تراکنشی ثبت نشده است">هنوز واریز، برداشت یا درآمدی در کیف پول شما ثبت نشده.</x-empty-state>
                     @endforelse
                 </div>
-                <div class="px-5 py-4">{{ $transactions->links() }}</div>
-            </div>
+                @if($transactions->hasPages())
+                    <div class="card__foot">{{ $transactions->links() }}</div>
+                @endif
+            </section>
         </div>
 
-        <div class="space-y-6">
-            <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="font-bold text-gray-800 mb-4">درخواست برداشت</h3>
-                <form method="POST" action="{{ route('wallet.withdraw') }}" class="space-y-3">
+        <aside class="stack-24">
+            <section class="card" data-reveal>
+                <span class="eyebrow">Withdraw</span>
+                <h2 class="h3 mt-8">درخواست برداشت</h2>
+                <form method="POST" action="{{ route('wallet.withdraw') }}" class="stack-16 mt-24">
                     @csrf
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">مبلغ (تومان)</label>
-                        <input type="number" name="amount" required min="{{ $minWithdrawal }}"
-                               class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                        <p class="text-xs text-gray-400 mt-1">حداقل مبلغ برداشت: {{ number_format($minWithdrawal) }} تومان</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">شماره شبا</label>
-                        <input type="text" name="sheba_number" required dir="ltr" placeholder="IR..."
-                               class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">شماره کارت (اختیاری)</label>
-                        <input type="text" name="card_number" dir="ltr" placeholder="0000-0000-0000-0000"
-                               class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                    </div>
-                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 text-sm font-medium">ثبت درخواست</button>
+                    <x-field label="مبلغ (تومان)" name="amount" required hint="حداقل مبلغ برداشت: {{ \App\Support\Fmt::money($minWithdrawal) }}">
+                        <input type="number" name="amount" required min="{{ $minWithdrawal }}" class="input figure @error('amount') input--err @enderror" placeholder="مثال: ۵۰۰٬۰۰۰">
+                    </x-field>
+                    <x-field label="شماره شبا" name="sheba_number" required hint="بدون خط تیره و با IR شروع شود.">
+                        <input type="text" name="sheba_number" required dir="ltr" value="{{ old('sheba_number') }}" class="input ltr @error('sheba_number') input--err @enderror" placeholder="IR000000000000000000000000">
+                    </x-field>
+                    <x-field label="شماره کارت (اختیاری)" name="card_number" optional>
+                        <input type="text" name="card_number" dir="ltr" value="{{ old('card_number') }}" class="input ltr" placeholder="0000-0000-0000-0000">
+                    </x-field>
+                    <button type="submit" class="btn btn--block">ثبت درخواست برداشت</button>
                 </form>
-            </div>
+            </section>
 
-            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-bold text-gray-800">درخواست‌های برداشت</h3>
-                </div>
-                <div class="divide-y divide-gray-100">
+            <section class="card card--flush" data-reveal>
+                <x-section-head title="درخواست‌های برداشت" />
+                <div class="list">
                     @forelse($withdrawals as $w)
-                        <div class="px-5 py-3 flex items-center justify-between text-sm">
-                            <div>
-                                <div class="font-medium text-gray-800">{{ number_format($w->amount) }} تومان</div>
-                                <div class="text-xs text-gray-400">{{ $w->created_at->format('Y/m/d') }}</div>
+                        <div class="list__row">
+                            <div class="grow stack-4">
+                                <span class="strong figure">{{ \App\Support\Fmt::money($w->amount) }}</span>
+                                <span class="micro figure">{{ \App\Support\Fmt::date($w->created_at) }}</span>
                             </div>
-                            <span class="px-2.5 py-1 rounded-full text-xs {{ $w->status->badgeClass() }}">{{ $w->status->label() }}</span>
+                            <x-badge :tone="$w->status->tone()">{{ $w->status->label() }}</x-badge>
                         </div>
                     @empty
-                        <div class="px-5 py-6 text-center text-gray-400 text-sm">درخواستی ثبت نشده است</div>
+                        <x-empty-state icon="banknote" title="درخواستی ثبت نشده است" tight />
                     @endforelse
                 </div>
-            </div>
-        </div>
+            </section>
+        </aside>
     </div>
 @endsection

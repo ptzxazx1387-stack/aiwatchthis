@@ -1,95 +1,63 @@
 @extends('layouts.app')
 
 @section('title', 'سطوح کاربری')
-@section('page-title', 'سطوح کاربری (گروه‌ها)')
 
 @section('content')
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- فرم ایجاد گروه --}}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 h-fit">
-            <h3 class="font-bold text-gray-800 mb-4">ایجاد گروه جدید</h3>
-            <form method="POST" action="{{ route('admin.groups.store') }}" class="space-y-3">
-                @csrf
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">نام گروه</label>
-                    <input type="text" name="name" required class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">کد یکتا</label>
-                    <input type="text" name="code" required placeholder="level-4" class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">سقف روزانه</label>
-                        <input type="number" name="daily_campaign_limit" required value="1" class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">سقف هفتگی</label>
-                        <input type="number" name="weekly_campaign_limit" required value="5" class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">حداقل میانگین ویو</label>
-                    <input type="number" name="min_avg_views" value="0" class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">توضیحات</label>
-                    <textarea name="description" rows="2" class="w-full text-sm rounded-lg border-gray-300 px-3 py-2 border"></textarea>
-                </div>
-                <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 text-sm font-medium">افزودن گروه</button>
-            </form>
-        </div>
+    <x-page-header eyebrow="Groups" title="سطوح کاربری" lead="سقف کمپین و حداقل قدرت پیج هر سطح سفیر را اینجا تعریف کنید." />
 
-        {{-- لیست گروه‌ها --}}
-        <div class="lg:col-span-2 space-y-4">
+    <div class="grid grid-side grid-24">
+        <form method="POST" action="{{ route('admin.groups.store') }}" class="card stack-16" data-reveal>
+            @csrf
+            <span class="eyebrow">New level</span>
+            <h2 class="h3">ایجاد سطح جدید</h2>
+            <x-field label="نام گروه" name="name" required><input type="text" name="name" required class="input" placeholder="مثلاً سطح طلایی"></x-field>
+            <x-field label="کد یکتا" name="code" required><input type="text" name="code" required class="input ltr" placeholder="gold"></x-field>
+            <div class="grid grid-2 keep">
+                <x-field label="سقف روزانه" name="daily_campaign_limit"><input type="number" name="daily_campaign_limit" required value="1" min="0" class="input figure"></x-field>
+                <x-field label="سقف هفتگی" name="weekly_campaign_limit"><input type="number" name="weekly_campaign_limit" required value="5" min="0" class="input figure"></x-field>
+            </div>
+            <x-field label="حداقل میانگین ویو" name="min_avg_views"><input type="number" name="min_avg_views" value="0" min="0" class="input figure"></x-field>
+            <x-field label="توضیحات" name="description" optional><textarea name="description" rows="2" class="textarea"></textarea></x-field>
+            <button class="btn">افزودن سطح</button>
+        </form>
+
+        <div class="stack-16">
             @forelse($groups as $group)
-                <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                    <form method="POST" action="{{ route('admin.groups.update', $group) }}" class="space-y-3">
+                <article class="card stack-16" data-reveal>
+                    <form method="POST" action="{{ route('admin.groups.update', $group) }}" class="stack-16">
                         @csrf
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="px-3 py-1 rounded-lg text-xs font-bold {{ $group->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">{{ $group->code }}</span>
-                                <input type="text" name="name" value="{{ $group->name }}" class="font-bold text-gray-800 text-sm rounded border-gray-300 px-2 py-1 border">
+                        <div class="row between wrap" style="gap:12px">
+                            <div class="row-8">
+                                <x-badge :tone="$group->is_active ? 'emerald' : 'mist'">{{ $group->code }}</x-badge>
+                                <input type="text" name="name" value="{{ $group->name }}" class="input" style="max-inline-size:240px">
                             </div>
-                            <label class="flex items-center gap-2 text-xs text-gray-600">
-                                <input type="checkbox" name="is_active" value="1" {{ $group->is_active ? 'checked' : '' }}> فعال
+                            <label class="check">
+                                <input type="checkbox" name="is_active" value="1" {{ $group->is_active ? 'checked' : '' }}>
+                                <span>فعال</span>
                             </label>
                         </div>
 
-                        <div class="grid grid-cols-4 gap-3 text-xs">
-                            <div>
-                                <label class="block text-gray-500 mb-1">سقف روزانه</label>
-                                <input type="number" name="daily_campaign_limit" value="{{ $group->daily_campaign_limit }}" class="w-full rounded-lg border-gray-300 px-2 py-1.5 border">
-                            </div>
-                            <div>
-                                <label class="block text-gray-500 mb-1">سقف هفتگی</label>
-                                <input type="number" name="weekly_campaign_limit" value="{{ $group->weekly_campaign_limit }}" class="w-full rounded-lg border-gray-300 px-2 py-1.5 border">
-                            </div>
-                            <div>
-                                <label class="block text-gray-500 mb-1">حداقل ویو</label>
-                                <input type="number" name="min_avg_views" value="{{ $group->min_avg_views }}" class="w-full rounded-lg border-gray-300 px-2 py-1.5 border">
-                            </div>
-                            <div>
-                                <label class="block text-gray-500 mb-1">تعداد سفیر</label>
-                                <div class="py-1.5 text-gray-700 font-bold">{{ $group->ambassador_profiles_count ?? 0 }}</div>
-                            </div>
+                        <div class="grid grid-4 keep" style="gap:12px">
+                            <x-field label="سقف روزانه"><input type="number" name="daily_campaign_limit" value="{{ $group->daily_campaign_limit }}" class="input figure"></x-field>
+                            <x-field label="سقف هفتگی"><input type="number" name="weekly_campaign_limit" value="{{ $group->weekly_campaign_limit }}" class="input figure"></x-field>
+                            <x-field label="حداقل ویو"><input type="number" name="min_avg_views" value="{{ $group->min_avg_views }}" class="input figure"></x-field>
+                            <x-field label="تعداد سفیر"><div class="strong figure" style="padding-block:10px">{{ \App\Support\Fmt::num($group->ambassador_profiles_count ?? 0) }}</div></x-field>
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <input type="text" name="description" value="{{ $group->description }}" class="flex-1 text-xs rounded-lg border-gray-300 px-3 py-2 border">
-                            <div class="flex gap-2 mr-3">
-                                <button class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 text-xs font-medium">ذخیره</button>
-                            </div>
+                        <div class="row between wrap" style="gap:12px">
+                            <input type="text" name="description" value="{{ $group->description }}" class="input grow">
+                            <button class="btn btn--sm">ذخیره تغییرات</button>
                         </div>
                     </form>
-                    <form method="POST" action="{{ route('admin.groups.destroy', $group) }}" class="mt-2" onsubmit="return confirm('این گروه حذف شود؟')">
+
+                    <form method="POST" action="{{ route('admin.groups.destroy', $group) }}" data-confirm="این سطح برای همیشه حذف می‌شود؟" data-confirm-title="حذف سطح" data-confirm-tone="rose" data-confirm-ok="حذف کن">
                         @csrf
                         @method('DELETE')
-                        <button class="text-xs text-rose-600 hover:underline">حذف گروه</button>
+                        <button class="btn btn--quiet btn--xs tone-rose">حذف سطح</button>
                     </form>
-                </div>
+                </article>
             @empty
-                <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center text-gray-400">گروهی تعریف نشده است</div>
+                <div class="card"><x-empty-state icon="layers" title="سطحی تعریف نشده است" tight>برای شروع، یک سطح کاربری بسازید.</x-empty-state></div>
             @endforelse
         </div>
     </div>

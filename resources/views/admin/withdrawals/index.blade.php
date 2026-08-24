@@ -1,63 +1,57 @@
 @extends('layouts.app')
 
 @section('title', 'درخواست‌های برداشت')
-@section('page-title', 'درخواست‌های برداشت')
 
 @section('content')
-    <div class="mb-4 flex items-center gap-2 flex-wrap">
-        @foreach(['' => 'همه', 'pending' => 'در انتظار', 'approved' => 'تأییدشده', 'rejected' => 'ردشده'] as $key => $label)
-            <a href="{{ route('admin.withdrawals.index', $key ? ['status' => $key] : []) }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium {{ (request('status') ?? '') === $key ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600' }}">
-                {{ $label }}
-            </a>
-        @endforeach
-    </div>
+    <x-page-header eyebrow="Withdrawals" title="درخواست‌های برداشت" lead="هر برداشت قبل از انجام پرداخت بررسی می‌شود. دلیل رد برای کاربر قابل مشاهده است." />
 
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-600">
-                <tr>
-                    <th class="px-4 py-3 text-right font-medium">کاربر</th>
-                    <th class="px-4 py-3 text-right font-medium">مبلغ</th>
-                    <th class="px-4 py-3 text-right font-medium">شماره شبا</th>
-                    <th class="px-4 py-3 text-right font-medium">وضعیت</th>
-                    <th class="px-4 py-3 text-right font-medium">تاریخ</th>
-                    <th class="px-4 py-3 text-right font-medium">عملیات</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
+    <x-filter-chips
+        route="admin.withdrawals.index"
+        param="status"
+        :current="request('status')"
+        :options="['' => 'همه', 'pending' => 'در انتظار', 'approved' => 'تأییدشده', 'rejected' => 'ردشده']"
+        class="mb-24" />
+
+    <section class="card card--flush" data-reveal>
+        <div class="tablewrap">
+            <table class="table">
+                <thead>
+                <tr><th>کاربر</th><th>مبلغ</th><th>شماره شبا</th><th>وضعیت</th><th>تاریخ</th><th>عملیات</th></tr>
+                </thead>
+                <tbody>
                 @forelse($withdrawals as $w)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-800">{{ $w->user->name }}</td>
-                        <td class="px-4 py-3 font-bold text-gray-800">{{ number_format($w->amount) }} تومان</td>
-                        <td class="px-4 py-3 text-gray-600" dir="ltr">{{ $w->sheba_number }}</td>
-                        <td class="px-4 py-3">
-                            <span class="px-2.5 py-1 rounded-full text-xs {{ $w->status->badgeClass() }}">{{ $w->status->label() }}</span>
+                    <tr>
+                        <td>
+                            <div class="row-8"><x-avatar :name="$w->user->name" size="sm" tone="mist" /><span class="strong">{{ $w->user->name }}</span></div>
                         </td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">{{ $w->created_at->format('Y/m/d') }}</td>
-                        <td class="px-4 py-3">
+                        <td class="num strong">@money($w->amount)</td>
+                        <td class="num ltr">{{ $w->sheba_number }}</td>
+                        <td><x-badge :tone="$w->status->tone()">{{ $w->status->label() }}</x-badge></td>
+                        <td class="num dim">@jshort($w->created_at)</td>
+                        <td>
                             @if($w->status === \App\Enums\WithdrawalStatus::Pending)
-                                <div class="flex gap-2">
+                                <div class="row-6 wrap">
                                     <form method="POST" action="{{ route('admin.withdrawals.approve', $w) }}">
                                         @csrf
-                                        <button class="text-xs text-emerald-600 hover:underline font-medium">تأیید</button>
+                                        <button class="btn btn--emerald btn--xs">تأیید</button>
                                     </form>
-                                    <form method="POST" action="{{ route('admin.withdrawals.reject', $w) }}" class="flex gap-1">
+                                    <form method="POST" action="{{ route('admin.withdrawals.reject', $w) }}" class="row-6" data-reason-form data-reason-required="true" data-reason-tone="rose" data-reason-title="رد برداشت" data-reason-label="دلیل رد برای کاربر" data-reason-ok="ثبت رد">
                                         @csrf
-                                        <input type="text" name="review_note" placeholder="دلیل" class="text-xs rounded border-gray-300 px-2 py-1 border w-24">
-                                        <button class="text-xs text-rose-600 hover:underline font-medium">رد</button>
+                                        <input type="hidden" name="review_note" value="" data-reason-field>
+                                        <button class="btn btn--ghost btn--xs">رد</button>
                                     </form>
                                 </div>
                             @else
-                                <span class="text-xs text-gray-400">بررسی‌شده</span>
+                                <span class="micro">بررسی‌شده</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">درخواستی یافت نشد</td></tr>
+                    <tr><td colspan="6"><x-empty-state icon="banknote" title="درخواستی یافت نشد" tight /></td></tr>
                 @endforelse
-            </tbody>
-        </table>
-        <div class="px-5 py-4">{{ $withdrawals->links() }}</div>
-    </div>
+                </tbody>
+            </table>
+        </div>
+        <div class="card__foot">{{ $withdrawals->links() }}</div>
+    </section>
 @endsection

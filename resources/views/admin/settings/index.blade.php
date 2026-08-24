@@ -1,33 +1,24 @@
 @extends('layouts.app')
 
 @section('title', 'تنظیمات سامانه')
-@section('page-title', 'تنظیمات سامانه')
 
 @section('content')
-    <div class="max-w-xl bg-white rounded-2xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-4">
-            @csrf
+    <x-page-header eyebrow="Settings" title="تنظیمات سامانه" lead="تنها چند مورد سراسری اینجا تنظیم می‌شود؛ بقیه صفحه‌ها خودشان مستقل و ساده نگه داشته شده‌اند." />
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">نام سامانه</label>
-                <input type="text" name="site_name" value="{{ \App\Models\Setting::get('site_name') }}"
-                       class="w-full rounded-lg border-gray-300 focus:border-indigo-500 text-sm px-3 py-2.5 border">
-            </div>
+    <form method="POST" action="{{ route('admin.settings.update') }}" class="card narrow stack-20" data-reveal>
+        @csrf
+        <x-field label="نام سامانه" name="site_name" required>
+            <input type="text" name="site_name" value="{{ old('site_name', \App\Models\Setting::get('site_name')) }}" class="input" required>
+        </x-field>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">نرخ کمیسیون سامانه (٪)</label>
-                <input type="number" step="0.1" name="commission_rate" value="{{ \App\Models\Setting::get('commission_rate', 10) }}"
-                       class="w-full rounded-lg border-gray-300 focus:border-indigo-500 text-sm px-3 py-2.5 border">
-                <p class="text-xs text-gray-400 mt-1">این درصد از درآمد هر سفیر به‌عنوان کمیسیون کسر می‌شود.</p>
-            </div>
+        <x-field label="نرخ کمیسیون سامانه (درصد)" name="commission_rate" required hint="این درصد از درآمد هر سفیر به‌عنوان کارمزد کسر می‌شود.">
+            <input type="number" step="0.1" name="commission_rate" value="{{ old('commission_rate', \App\Models\Setting::get('commission_rate', 10)) }}" class="input figure" required>
+        </x-field>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">حداقل مبلغ برداشت (تومان)</label>
-                <input type="number" name="min_withdrawal_amount" value="{{ \App\Models\Setting::get('min_withdrawal_amount', 100000) }}"
-                       class="w-full rounded-lg border-gray-300 focus:border-indigo-500 text-sm px-3 py-2.5 border">
-            </div>
+        <x-field label="حداقل مبلغ برداشت (تومان)" name="min_withdrawal_amount" required>
+            <input type="number" name="min_withdrawal_amount" value="{{ old('min_withdrawal_amount', \App\Models\Setting::get('min_withdrawal_amount', 100000)) }}" class="input figure" required>
+        </x-field>
 
-            <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-6 py-2.5 transition">ذخیره تنظیمات</button>
-        </form>
-    </div>
+        <button class="btn">ذخیره تنظیمات</button>
+    </form>
 @endsection

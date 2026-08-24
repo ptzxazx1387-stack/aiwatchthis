@@ -1,41 +1,46 @@
 @extends('layouts.app')
 
 @section('title', 'اعلان‌ها')
-@section('page-title', 'اعلان‌ها')
 
 @section('content')
-    <div class="mb-4 flex justify-end">
-        <form method="POST" action="{{ route('notifications.readAll') }}">
-            @csrf
-            <button class="text-sm text-indigo-600 hover:underline">علامت‌گذاری همه به‌عنوان خوانده‌شده</button>
-        </form>
-    </div>
+    <x-page-header eyebrow="Notifications" title="اعلان‌ها" lead="پیام‌ها، تغییر وضعیت‌ها و کارهایی که نیاز به توجه دارند این‌جا جمع می‌شوند.">
+        <x-slot name="actions">
+            <form method="POST" action="{{ route('notifications.readAll') }}">
+                @csrf
+                <button class="btn btn--ghost btn--sm">علامت‌گذاری همه به‌عنوان خوانده‌شده</button>
+            </form>
+        </x-slot>
+    </x-page-header>
 
-    <div class="space-y-3 max-w-2xl">
+    <div class="stack-12 medium">
         @forelse($notifications as $notification)
-            <div class="bg-white rounded-2xl border border-gray-200 p-4 flex items-start gap-3 {{ is_null($notification->read_at) ? 'border-indigo-300 bg-indigo-50/40' : '' }}">
-                <div class="text-xl mt-0.5">
-                    @php $icons = ['info' => 'ℹ️', 'success' => '✅', 'warning' => '⚠️', 'danger' => '❌']; @endphp
-                    {{ $icons[$notification->type] ?? 'ℹ️' }}
-                </div>
-                <div class="flex-1">
-                    <div class="font-medium text-gray-800 text-sm">{{ $notification->title }}</div>
-                    @if($notification->body)
-                        <div class="text-sm text-gray-600 mt-0.5">{{ $notification->body }}</div>
-                    @endif
-                    <div class="text-xs text-gray-400 mt-1">{{ $notification->created_at->format('Y/m/d H:i') }}</div>
+            @php
+                $tone = ['success' => 'emerald', 'warning' => 'amber', 'danger' => 'rose'][$notification->type] ?? 'mist';
+                $icon = ['success' => 'check-circle', 'warning' => 'alert', 'danger' => 'x-circle'][$notification->type] ?? 'info';
+            @endphp
+            <article class="card row-top" data-reveal style="padding:18px 20px">
+                <span class="avatar avatar--sm avatar--mist"><x-icon :name="$icon" :size="15" /></span>
+                <div class="grow stack-6">
+                    <div class="row between wrap" style="gap:10px">
+                        <h2 class="h4">{{ $notification->title }}</h2>
+                        @if(is_null($notification->read_at))<x-badge tone="amber" bare>جدید</x-badge>@endif
+                    </div>
+                    @if($notification->body)<p class="body">{{ $notification->body }}</p>@endif
+                    <p class="micro figure">{{ \App\Support\Fmt::dateTime($notification->created_at) }}</p>
                 </div>
                 @if(is_null($notification->read_at))
                     <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
                         @csrf
-                        <button class="text-xs text-indigo-600 hover:underline whitespace-nowrap">خواندم</button>
+                        <button class="btn btn--quiet btn--xs">خواندم</button>
                     </form>
                 @endif
-            </div>
+            </article>
         @empty
-            <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center text-gray-400">اعلانی ندارید</div>
+            <div class="card">
+                <x-empty-state icon="bell" title="اعلانی ندارید" tight>وقتی رویداد جدیدی اتفاق بیفتد، اینجا نمایش داده می‌شود.</x-empty-state>
+            </div>
         @endforelse
     </div>
 
-    <div class="mt-4">{{ $notifications->links() }}</div>
+    <div class="mt-24">{{ $notifications->links() }}</div>
 @endsection
